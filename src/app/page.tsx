@@ -16,7 +16,7 @@ export default function Home() {
             Welcome to AsquareS
           </h1>
           <p className="text-2xl text-zinc-400 sm:text-2xl">
-            This is the Staging / Dev
+            This is the Staging / Dev !
           </p>
         </div>
       </div>
