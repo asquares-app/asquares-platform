@@ -1,25 +1,46 @@
+import { Navbar } from "@/components/layout/Navbar";
+import { Footer } from "@/components/layout/Footer";
+import { Hero } from "@/components/sections/Hero";
+import { ProductsIntro } from "@/components/sections/ProductsIntro";
+import { ProductStack } from "@/components/sections/ProductStack";
+import { ProductARMenu } from "@/components/sections/ProductARMenu";
+import { ProductRealEstate } from "@/components/sections/ProductRealEstate";
+import { ProductSpillTheTea } from "@/components/sections/ProductSpillTheTea";
+import { About } from "@/components/sections/About";
+import { OriginStory } from "@/components/sections/OriginStory";
+import { Testimonials } from "@/components/sections/Testimonials";
+import { FAQ } from "@/components/sections/FAQ";
+import { CTABanner } from "@/components/sections/CTABanner";
+
 export default function Home() {
   return (
-    <main className="flex min-h-full flex-1 items-center justify-center px-6 py-16">
-      <div className="relative w-full max-w-xl overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-10 text-center shadow-2xl shadow-black/40 backdrop-blur-md">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-br from-violet-500/10 via-transparent to-cyan-500/10"
-        />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -top-px left-8 right-8 h-px bg-gradient-to-r from-transparent via-violet-400/60 to-transparent"
-        />
+    <>
+      <Navbar />
+      <main className="bg-white">
+        <Hero />
 
-        <div className="relative space-y-3">
-          <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
-            Welcome to AsquareS
-          </h1>
-          <p className="text-2xl text-zinc-400 sm:text-2xl">
-            This is the Staging / Dev !!!
-          </p>
-        </div>
-      </div>
-    </main>
+        <section id="products" className="scroll-mt-20 bg-white">
+          <ProductsIntro />
+          <ProductStack>
+            <ProductARMenu />
+            <ProductRealEstate />
+            <ProductSpillTheTea />
+          </ProductStack>
+        </section>
+
+        <section id="about" className="scroll-mt-20 bg-white">
+          <About />
+          <OriginStory />
+        </section>
+
+        <Testimonials />
+
+        <section id="contact" className="scroll-mt-20 bg-white">
+          <FAQ />
+          <CTABanner />
+        </section>
+      </main>
+      <Footer />
+    </>
   );
 }
