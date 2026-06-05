@@ -6,19 +6,15 @@ type LogoProps = {
   priority?: boolean;
 };
 
-/**
- * Logo uses mix-blend-multiply on white backgrounds (navbar) so the JPEG's white
- * background disappears and only the black a²S mark is visible.
- * On dark backgrounds (footer) we use CSS filter to invert it to white.
- */
+/** Static logo for non-animated contexts (e.g. footer). */
 export function Logo({ variant = "dark", className = "h-9 w-auto", priority = false }: LogoProps) {
   if (variant === "light") {
     return (
       <Image
-        src="/logo.png"
+        src="/logo-collapsed.svg"
         alt="AsquareS"
-        width={164}
-        height={100}
+        width={350}
+        height={214}
         className={`object-contain [filter:brightness(0)_invert(1)] ${className}`}
       />
     );
@@ -26,12 +22,12 @@ export function Logo({ variant = "dark", className = "h-9 w-auto", priority = fa
 
   return (
     <Image
-      src="/logo.png"
+      src="/logo-collapsed.svg"
       alt="AsquareS"
-      width={164}
-      height={100}
+      width={350}
+      height={214}
       priority={priority}
-      className={`object-contain mix-blend-multiply ${className}`}
+      className={`object-contain ${className}`}
     />
   );
 }
