@@ -3,7 +3,7 @@
 import { Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
-import { Logo } from "@/components/ui/Logo";
+import { LogoTransition } from "@/components/ui/LogoTransition";
 import { useActiveSection } from "@/hooks/useActiveSection";
 import { navLinks } from "@/lib/content";
 import { scrollToSection } from "@/lib/scroll";
@@ -33,16 +33,17 @@ export function Navbar() {
           : "border-b border-transparent bg-white/70 backdrop-blur-md"
       }`}
     >
-      <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-8">
+      <nav className="relative mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-8">
         <button
           type="button"
+          aria-label="AsquareS home"
           onClick={() => handleNavClick("#home")}
-          className="flex items-center gap-3 transition-opacity hover:opacity-80"
+          className="relative z-10 flex shrink-0 items-center transition-opacity hover:opacity-80"
         >
-          <Logo priority className="h-9 w-auto sm:h-10" />
+          <LogoTransition priority />
         </button>
 
-        <ul className="hidden items-center gap-1 md:flex">
+        <ul className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-1 md:flex">
           {navLinks.map((link) => {
             const id = link.href.replace("#", "");
             const isActive = activeSection === id;
@@ -64,7 +65,7 @@ export function Navbar() {
           })}
         </ul>
 
-        <div className="hidden md:block">
+        <div className="relative z-10 hidden shrink-0 md:block">
           <Button href="#contact" variant="primary">
             Get Started
           </Button>
@@ -73,7 +74,7 @@ export function Navbar() {
         <button
           type="button"
           aria-label={mobileOpen ? "Close menu" : "Open menu"}
-          className="rounded-lg p-2 text-slate-700 md:hidden"
+          className="relative z-10 shrink-0 rounded-lg p-2 text-slate-700 md:hidden"
           onClick={() => setMobileOpen((open) => !open)}
         >
           {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
