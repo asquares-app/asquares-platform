@@ -1,6 +1,7 @@
 "use client";
 
 import { Menu, X } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { LogoTransition } from "@/components/ui/LogoTransition";
@@ -10,6 +11,7 @@ import { scrollToSection } from "@/lib/scroll";
 
 export function Navbar() {
   const activeSection = useActiveSection();
+  const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -21,7 +23,11 @@ export function Navbar() {
   }, []);
 
   const handleNavClick = (href: string) => {
-    scrollToSection(href);
+    if (pathname === "/") {
+      scrollToSection(href);
+    } else {
+      window.location.href = `/${href}`;
+    }
     setMobileOpen(false);
   };
 
@@ -37,7 +43,13 @@ export function Navbar() {
         <button
           type="button"
           aria-label="AsquareS home"
-          onClick={() => handleNavClick("#home")}
+          onClick={() => {
+            if (pathname === "/") {
+              handleNavClick("#home");
+            } else {
+              window.location.href = "/";
+            }
+          }}
           className="relative z-10 flex shrink-0 items-center transition-opacity hover:opacity-80"
         >
           <LogoTransition priority />
@@ -65,8 +77,11 @@ export function Navbar() {
           })}
         </ul>
 
-        <div className="relative z-10 hidden shrink-0 md:block">
-          <Button href="#contact" variant="primary">
+        <div className="relative z-10 hidden shrink-0 items-center gap-3 md:flex">
+          <Button href="/apps" variant="secondary">
+            My Apps
+          </Button>
+          <Button href={pathname === "/" ? "#contact" : "/#contact"} variant="primary">
             Get Started
           </Button>
         </div>
@@ -102,7 +117,12 @@ export function Navbar() {
               );
             })}
             <li className="pt-2">
-              <Button href="#contact" variant="primary" className="w-full">
+              <Button href="/apps" variant="secondary" className="w-full">
+                My Apps
+              </Button>
+            </li>
+            <li className="pt-2">
+              <Button href={pathname === "/" ? "#contact" : "/#contact"} variant="primary" className="w-full">
                 Get Started
               </Button>
             </li>

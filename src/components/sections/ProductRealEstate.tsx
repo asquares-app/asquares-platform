@@ -21,12 +21,12 @@ export function ProductRealEstate() {
               <span className="h-2.5 w-2.5 rounded-full bg-green-400" />
             </div>
             <div className="mx-auto rounded-md bg-slate-800 px-3 py-0.5 text-[11px] text-slate-400">
-              realestate.AsquareS.app
+              reagent.asquares.app
             </div>
           </div>
           <div className="bg-slate-50 p-4">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-semibold text-slate-800">Real Estate Agent</p>
+              <p className="text-sm font-semibold text-slate-800">REagent</p>
               <span className="flex items-center gap-1.5 rounded-full bg-green-100 px-2.5 py-0.5 text-[10px] font-medium text-green-700">
                 <span className="pulse-live h-1.5 w-1.5 rounded-full bg-green-500" />
                 Live
@@ -70,12 +70,11 @@ export function ProductRealEstate() {
         <SectionBadge icon={<Globe className="h-4 w-4" />} variant="blue">
           Artificial Intelligence
         </SectionBadge>
-        <h3 className="mt-5 text-2xl font-semibold text-slate-900 sm:text-3xl">Real Estate Call Agent</h3>
-        <p className="mt-1 text-base font-medium text-slate-600">AI That Closes Deals</p>
+        <h3 className="mt-5 text-2xl font-semibold text-slate-900 sm:text-3xl">REagent</h3>
+        <p className="mt-1 text-base font-medium text-slate-600">AI receptionist for real-estate calls</p>
         <p className="mt-3 text-sm leading-relaxed text-muted sm:text-base">
-          Never miss a lead again. Our AI-powered call attending agent handles inbound real estate
-          inquiries 24/7, qualifies prospects, schedules viewings, and feeds a beautiful analytics
-          dashboard.
+          Never miss a buyer enquiry. REagent answers in Hinglish, captures locality, budget and timeline,
+          scores the lead, and drops it into a clean dealer dashboard with an email alert.
         </p>
         <ul className="mt-5 space-y-2.5">
           {features.map((feature) => (
@@ -86,8 +85,8 @@ export function ProductRealEstate() {
           ))}
         </ul>
         <div className="mt-7">
-          <Button href="#" variant="primary" showArrow>
-            Learn More
+          <Button href="/apps" variant="primary" showArrow>
+            Open REagent
           </Button>
         </div>
       </div>
