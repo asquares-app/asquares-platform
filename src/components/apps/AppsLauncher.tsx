@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 
 type LauncherProps = {
   clerkConfigured: boolean;
+  allowlistConfigured: boolean;
   allowed: boolean;
   reagentUrl: string;
 };
@@ -145,7 +146,12 @@ function ProductCard({
   );
 }
 
-export function AppsLauncher({ clerkConfigured, allowed, reagentUrl }: LauncherProps) {
+export function AppsLauncher({
+  clerkConfigured,
+  allowlistConfigured,
+  allowed,
+  reagentUrl,
+}: LauncherProps) {
   if (!clerkConfigured) {
     return (
       <div className="rounded-3xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-900">
@@ -153,6 +159,18 @@ export function AppsLauncher({ clerkConfigured, allowed, reagentUrl }: LauncherP
         <p className="mt-2 leading-6">
           Add Clerk keys in Vercel / <code>.env.local</code> first. Until then, the launcher is wired
           but sign-in stays disabled.
+        </p>
+      </div>
+    );
+  }
+
+  if (!allowlistConfigured) {
+    return (
+      <div className="rounded-3xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-900">
+        <p className="font-semibold">Allowlist not configured</p>
+        <p className="mt-2 leading-6">
+          Set <code>REAGENT_ALLOWED_EMAILS</code> before demos so only approved dealers can open
+          REagent and burn voice credits.
         </p>
       </div>
     );

@@ -81,8 +81,8 @@ export function Navbar() {
           <Button href="/apps" variant="secondary">
             My Apps
           </Button>
-          <Button href={pathname === "/" ? "#contact" : "/#contact"} variant="primary">
-            Get Started
+          <Button href="/apps" variant="primary">
+            REagent demo
           </Button>
         </div>
 
@@ -122,8 +122,8 @@ export function Navbar() {
               </Button>
             </li>
             <li className="pt-2">
-              <Button href={pathname === "/" ? "#contact" : "/#contact"} variant="primary" className="w-full">
-                Get Started
+              <Button href="/apps" variant="primary" className="w-full">
+                REagent demo
               </Button>
             </li>
           </ul>

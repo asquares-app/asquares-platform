@@ -88,25 +88,47 @@ const STATUS_LABELS: Record<string, string> = {
 
 function WebCallWidget({
   dealerEmail,
+  waitingForReport,
   onCallEnded,
+  onError,
 }: {
   dealerEmail: string | null;
+  waitingForReport: boolean;
   onCallEnded: () => void;
+  onError: (message: string) => void;
 }) {
   const [state, setState] = useState<"idle" | "connecting" | "active" | "ended">("idle");
   const [vapiInstance, setVapiInstance] = useState<InstanceType<typeof Vapi> | null>(null);
+  const phase = state === "ended" && !waitingForReport ? "idle" : state;
+
+  useEffect(() => {
+    return () => {
+      void vapiInstance?.stop();
+    };
+  }, [vapiInstance]);
 
   const start = useCallback(async () => {
     const publicKey = process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY;
     const assistantId = process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID;
     if (!publicKey || !assistantId) {
-      alert(
-        "Vapi is not configured. Set NEXT_PUBLIC_VAPI_PUBLIC_KEY and NEXT_PUBLIC_VAPI_ASSISTANT_ID in .env.local",
-      );
+      onError("Vapi keys missing. Set NEXT_PUBLIC_VAPI_PUBLIC_KEY and NEXT_PUBLIC_VAPI_ASSISTANT_ID.");
       return;
     }
 
     setState("connecting");
+    onError("");
+
+    try {
+      if (typeof navigator !== "undefined" && navigator.mediaDevices?.getUserMedia) {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        stream.getTracks().forEach((t) => t.stop());
+      }
+    } catch {
+      setState("idle");
+      onError("Microphone permission is required for the demo call.");
+      return;
+    }
+
     const vapi = new Vapi(publicKey);
     vapi.on("call-start", () => setState("active"));
     vapi.on("call-end", () => {
@@ -118,6 +140,7 @@ function WebCallWidget({
       console.error("[vapi]", err);
       setState("idle");
       setVapiInstance(null);
+      onError("Call failed to start. Check mic permissions and Vapi keys, then try again.");
     });
 
     try {
@@ -128,23 +151,35 @@ function WebCallWidget({
     } catch (err) {
       console.error("[vapi] start failed", err);
       setState("idle");
+      onError("Could not connect the demo call. Try again in a moment.");
     }
-  }, [dealerEmail, onCallEnded]);
+  }, [dealerEmail, onCallEnded, onError]);
 
   const stop = useCallback(() => {
     vapiInstance?.stop();
   }, [vapiInstance]);
 
-  if (state === "ended") {
+  if (phase === "ended" || waitingForReport) {
     return (
-      <div className="flex items-center gap-3 rounded-full border border-blue-200 bg-blue-50 px-5 py-3 text-sm font-semibold text-blue-700">
-        <Loader2 className="h-4 w-4 animate-spin" />
-        Call ended — waiting for lead report…
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex items-center gap-3 rounded-full border border-blue-200 bg-blue-50 px-5 py-3 text-sm font-semibold text-blue-700">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Waiting for lead report…
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            void start();
+          }}
+          className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:border-blue-300"
+        >
+          Start another call
+        </button>
       </div>
     );
   }
 
-  if (state === "active") {
+  if (phase === "active") {
     return (
       <button
         onClick={stop}
@@ -156,7 +191,7 @@ function WebCallWidget({
     );
   }
 
-  if (state === "connecting") {
+  if (phase === "connecting") {
     return (
       <div className="flex items-center gap-3 rounded-full border border-blue-200 bg-blue-50 px-5 py-3 text-sm font-semibold text-blue-700">
         <Loader2 className="h-4 w-4 animate-spin" />
@@ -167,7 +202,7 @@ function WebCallWidget({
 
   return (
     <button
-      onClick={start}
+      onClick={() => void start()}
       className="flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-semibold text-white shadow-md hover:opacity-90"
     >
       <Mic className="h-4 w-4" />
@@ -296,6 +331,11 @@ function LeadCard({
             Recording
           </a>
         )}
+        {!isSample && lead.alertSent && (
+          <span className="inline-flex items-center rounded-full bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700">
+            Email sent
+          </span>
+        )}
         {!isSample && lead.scoringStatus === "failed" && (
           <button
             type="button"
@@ -354,7 +394,9 @@ export function DashboardShell({
 
   const [leads, setLeads] = useState<Lead[]>(initialLeads);
   const [waitingForReport, setWaitingForReport] = useState(false);
+  const [knownLeadIds, setKnownLeadIds] = useState<Set<string>>(() => new Set(initialLeads.map((l) => l.id)));
   const [pollNote, setPollNote] = useState<string | null>(null);
+  const [callError, setCallError] = useState<string | null>(null);
 
   const refreshLeads = useCallback(async () => {
     try {
@@ -375,21 +417,34 @@ export function DashboardShell({
     let cancelled = false;
     let attempts = 0;
     const maxAttempts = 24; // ~72s
+    const baseline = knownLeadIds;
 
     const tick = async () => {
       attempts += 1;
       const latest = await refreshLeads();
       if (cancelled) return;
 
-      if (latest.some((l) => l.scoringStatus === "done" || l.scoringStatus === "failed")) {
+      const fresh = latest.find(
+        (l) =>
+          !baseline.has(l.id) &&
+          (l.scoringStatus === "done" || l.scoringStatus === "failed" || l.scoringStatus === "pending"),
+      );
+
+      if (fresh && (fresh.scoringStatus === "done" || fresh.scoringStatus === "failed")) {
         setWaitingForReport(false);
         setPollNote(null);
+        setKnownLeadIds(new Set(latest.map((l) => l.id)));
         return;
+      }
+
+      if (fresh?.scoringStatus === "pending") {
+        setPollNote("Lead received — scoring in progress…");
       }
 
       if (attempts >= maxAttempts) {
         setWaitingForReport(false);
         setPollNote("Still waiting. If no lead appears, check the Vapi Server URL / tunnel.");
+        setKnownLeadIds(new Set(latest.map((l) => l.id)));
       }
     };
 
@@ -402,9 +457,9 @@ export function DashboardShell({
       cancelled = true;
       window.clearInterval(id);
     };
-  }, [waitingForReport, refreshLeads]);
+  }, [waitingForReport, knownLeadIds, refreshLeads]);
 
-  const isEmpty = leads.length === 0;
+  const isEmpty = leads.length === 0 && !waitingForReport;
   const displayLeads = isEmpty ? SAMPLE_LEADS : leads;
 
   return (
@@ -439,16 +494,29 @@ export function DashboardShell({
             </div>
             <WebCallWidget
               dealerEmail={dealerEmail}
+              waitingForReport={waitingForReport}
+              onError={setCallError}
               onCallEnded={() => {
+                setKnownLeadIds(new Set(leads.map((l) => l.id)));
                 setPollNote("Waiting for Vapi end-of-call report and scoring…");
                 setWaitingForReport(true);
               }}
             />
           </div>
+          {callError && (
+            <p className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {callError}
+            </p>
+          )}
           {pollNote && (
             <p className="mt-4 flex items-center gap-2 text-sm text-blue-700">
               <Loader2 className="h-4 w-4 animate-spin" />
               {pollNote}
+            </p>
+          )}
+          {waitingForReport && leads.length === 0 && (
+            <p className="mt-3 text-sm text-slate-500">
+              Sample leads are hidden while we wait for your live call report.
             </p>
           )}
         </div>

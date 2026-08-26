@@ -38,13 +38,67 @@ function extractTranscript(message: NonNullable<VapiPayload["message"]>) {
   ).trim();
 }
 
+function sanitizeRecordingUrl(url: string | null) {
+  if (!url) return null;
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== "https:") return null;
+    return parsed.toString();
+  } catch {
+    return null;
+  }
+}
+
 function extractRecordingUrl(message: NonNullable<VapiPayload["message"]>) {
   const recording = message.artifact?.recording;
-  if (typeof recording === "string") return recording;
-  if (recording && typeof recording === "object") {
-    return recording.url || recording.stereoUrl || null;
+  let raw: string | null = null;
+  if (typeof recording === "string") raw = recording;
+  else if (recording && typeof recording === "object") {
+    raw = recording.url || recording.stereoUrl || null;
+  } else {
+    raw = message.artifact?.recordingUrl || message.recordingUrl || null;
   }
-  return message.artifact?.recordingUrl || message.recordingUrl || null;
+  return sanitizeRecordingUrl(raw);
+}
+
+function timingSafeEqual(a: string, b: string) {
+  if (a.length !== b.length) return false;
+  let out = 0;
+  for (let i = 0; i < a.length; i += 1) out |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return out === 0;
+}
+
+async function verifySignature(req: NextRequest, body: string): Promise<boolean> {
+  const secret = process.env.VAPI_WEBHOOK_SECRET;
+  if (!secret) {
+    // Local demos can skip. Production must set a secret.
+    if (process.env.NODE_ENV === "production") return false;
+    return true;
+  }
+
+  const hmacHeader = req.headers.get("x-vapi-signature");
+  const sharedHeader =
+    req.headers.get("x-vapi-secret") ||
+    req.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
+
+  if (sharedHeader && timingSafeEqual(sharedHeader, secret)) return true;
+  if (!hmacHeader) return false;
+
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["verify"],
+  );
+
+  try {
+    const sigBytes = Buffer.from(hmacHeader, "hex");
+    return crypto.subtle.verify("HMAC", key, sigBytes, encoder.encode(body));
+  } catch {
+    return false;
+  }
 }
 
 function extractSummary(message: NonNullable<VapiPayload["message"]>) {
@@ -68,36 +122,6 @@ function extractDealerEmail(message: NonNullable<VapiPayload["message"]>) {
     getAllowedEmails()[0] ||
     "demo@asquares.app"
   ).toLowerCase();
-}
-
-async function verifySignature(req: NextRequest, body: string): Promise<boolean> {
-  const secret = process.env.VAPI_WEBHOOK_SECRET;
-  if (!secret) return true;
-
-  // Support both legacy HMAC header and Bearer / X-Vapi-Secret styles.
-  const hmacHeader = req.headers.get("x-vapi-signature");
-  const sharedHeader =
-    req.headers.get("x-vapi-secret") ||
-    req.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
-
-  if (sharedHeader && sharedHeader === secret) return true;
-  if (!hmacHeader) return false;
-
-  const encoder = new TextEncoder();
-  const key = await crypto.subtle.importKey(
-    "raw",
-    encoder.encode(secret),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["verify"],
-  );
-
-  try {
-    const sigBytes = Buffer.from(hmacHeader, "hex");
-    return crypto.subtle.verify("HMAC", key, sigBytes, encoder.encode(body));
-  } catch {
-    return false;
-  }
 }
 
 async function processLead(callId: string, transcript: string, dealerEmail: string) {

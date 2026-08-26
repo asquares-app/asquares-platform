@@ -3,9 +3,9 @@ import { Button } from "@/components/ui/Button";
 import { SectionBadge } from "@/components/ui/SectionBadge";
 
 const features = [
-  "Natural language call handling & transcription",
-  "Real-time analytics dashboard",
-  "CRM integration & lead scoring",
+  "Hinglish call handling & transcript capture",
+  "Lead score + summary in the dealer inbox",
+  "Email alert for every new enquiry",
 ];
 
 export function ProductRealEstate() {
@@ -21,7 +21,7 @@ export function ProductRealEstate() {
               <span className="h-2.5 w-2.5 rounded-full bg-green-400" />
             </div>
             <div className="mx-auto rounded-md bg-slate-800 px-3 py-0.5 text-[11px] text-slate-400">
-              reagent.asquares.app
+              asquares.app/reagent
             </div>
           </div>
           <div className="bg-slate-50 p-4">
@@ -38,18 +38,17 @@ export function ProductRealEstate() {
                   <Bot className="h-4 w-4" />
                 </div>
                 <div className="rounded-2xl rounded-tl-sm bg-white p-3 text-xs leading-relaxed text-slate-700 shadow-sm">
-                  Hi! I&apos;m your AI real estate agent. I see you&apos;re interested in 3-bedroom
-                  properties in Austin. Shall I schedule viewings?
+                  Namaste, main REagent hoon. Aap kis area mein property dekh rahe ho — budget aur BHK bhi bata dijiye.
                 </div>
               </div>
               <div className="flex justify-end">
                 <div className="rounded-2xl rounded-tr-sm bg-primary px-3 py-2 text-xs text-white">
-                  Yes, please! Budget is $450k.
+                  Powai mein 2BHK, budget 1.2 Cr, 45 days mein move.
                 </div>
               </div>
             </div>
             <div className="mt-3 grid grid-cols-3 gap-2">
-              {["24 Calls Today", "8 Leads", "92% Resolved"].map((metric) => (
+              {["Score 86", "Powai", "2BHK"].map((metric) => (
                 <div key={metric} className="rounded-lg bg-white p-2 text-center shadow-sm">
                   <p className="text-xs font-semibold text-slate-800">{metric}</p>
                 </div>
@@ -61,7 +60,7 @@ export function ProductRealEstate() {
           <Phone className="h-4 w-4 text-primary" />
           <div>
             <p className="text-xs font-bold text-slate-900">AI Answering</p>
-            <p className="text-[10px] text-muted">24/7 availability</p>
+            <p className="text-[10px] text-muted">Missed-call coverage</p>
           </div>
         </div>
       </div>
@@ -86,7 +85,7 @@ export function ProductRealEstate() {
         </ul>
         <div className="mt-7">
           <Button href="/apps" variant="primary" showArrow>
-            Open REagent
+            Open REagent demo
           </Button>
         </div>
       </div>

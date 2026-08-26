@@ -3,7 +3,7 @@ import { headers } from "next/headers";
 import { desc } from "drizzle-orm";
 import { DashboardShell } from "@/components/reagent/DashboardShell";
 import { getViewerContext } from "@/lib/auth";
-import { getPlatformBaseUrl, isReagentHost } from "@/lib/hosts";
+import { getPlatformBaseUrl } from "@/lib/hosts";
 import { db } from "@/db/client";
 import { leads, type Lead } from "@/db/schema";
 
@@ -23,7 +23,6 @@ export default async function ReagentDashboardPage() {
   const viewer = await getViewerContext();
   const host = (await headers()).get("host");
   const launcherUrl = `${getPlatformBaseUrl(host)}/apps`;
-  const productHomeHref = isReagentHost(host) ? "/" : "/reagent";
 
   if (!viewer.configured || !viewer.signedIn || !viewer.allowed) {
     redirect(launcherUrl);
@@ -36,7 +35,7 @@ export default async function ReagentDashboardPage() {
       email={viewer.email}
       initialLeads={dbLeads}
       launcherUrl={launcherUrl}
-      productHomeHref={productHomeHref}
+      productHomeHref="/reagent"
     />
   );
 }

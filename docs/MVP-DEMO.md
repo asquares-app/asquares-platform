@@ -4,11 +4,12 @@
 
 1. Copy env: `cp .env.example .env.local` and fill keys.
 2. Push DB schema: `npm run db:push`
-3. In Vapi assistant → Advanced → Server URL:
+3. Set `REAGENT_ALLOWED_EMAILS` (required — empty allowlist blocks everyone).
+4. In Vapi assistant → Advanced → Server URL:
    - Local: tunnel URL + `/api/vapi/webhook`
-   - Prod: `https://reagent.asquares.app/api/vapi/webhook`
-4. Enable `end-of-call-report` on that assistant.
-5. Leave `VAPI_WEBHOOK_SECRET` empty for local MVP.
+   - Prod: `https://asquares.app/api/vapi/webhook`
+5. Enable `end-of-call-report`.
+6. For production, set `VAPI_WEBHOOK_SECRET` and the same secret in Vapi.
 
 ## Local demo loop
 
@@ -23,22 +24,21 @@ Optional tunnel (needed for Vapi webhook while undeployed):
 npx cloudflared tunnel --url http://localhost:3000
 ```
 
-Paste the printed HTTPS URL into Vapi Server URL as:
+Paste into Vapi Server URL:
 `https://YOUR-TUNNEL/api/vapi/webhook`
 
 ### Click path
 
 1. Open `http://localhost:3000`
-2. Click **My Apps** → sign in with an allowlisted email
-3. Open **REagent** (uses same-origin `/reagent` locally so Clerk session works)
-4. Open dashboard → **Start demo Web Call**
-5. Speak as a buyer (area, budget, BHK, timeline)
-6. End call → wait ~10–40s while webhook + Gemini run
-7. Lead appears in inbox; email lands at `REAGENT_ALERT_TARGET`
+2. Click **REagent demo** / **My Apps** → sign in with an allowlisted email
+3. Open **REagent** → dashboard
+4. **Start demo Web Call** → speak as a buyer
+5. End call → wait for lead + email
 
 ## Notes
 
-- Local product URL prefers `http://localhost:3000/reagent` (same Clerk cookie).
-- Production uses `https://reagent.asquares.app` via host rewrite in `src/proxy.ts`.
-- Resend free tier: keep `REAGENT_ALERT_FROM=REagent <onboarding@resend.dev>` until domain is verified.
-- Gemini key must be an AI Studio key (`AIza…`). Set `GEMINI_MODEL=gemini-3.6-flash`.
+- Product path is always `/reagent` on the primary domain so Clerk login works.
+- `reagent.asquares.app` redirects to `asquares.app/reagent` until satellite auth is added.
+- Resend: keep `REAGENT_ALERT_FROM=REagent <onboarding@resend.dev>` until domain verified.
+- Gemini: prefer AI Studio keys (`AIza…`) and `GEMINI_MODEL=gemini-3.6-flash`.
+- If Gemini fails, a heuristic fallback still scores the lead so the demo continues.

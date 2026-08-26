@@ -12,9 +12,9 @@ export function Testimonials() {
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <ScrollReveal className="text-center">
           <h2 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
-            What People Are Saying
+            What we&apos;re building
           </h2>
-          <p className="mt-3 text-lg text-muted">Early users love what we&apos;re building.</p>
+          <p className="mt-3 text-lg text-muted">Clear product bets — no fake reviews.</p>
         </ScrollReveal>
 
         <StaggerContainer className="mt-14 grid gap-6 md:grid-cols-3">
@@ -26,7 +26,7 @@ export function Testimonials() {
               >
                 <div className="flex gap-0.5">
                   {Array.from({ length: 5 }).map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
+                    <Star key={i} className="h-4 w-4 fill-slate-200 text-slate-200" />
                   ))}
                 </div>
                 <p className="mt-4 flex-1 text-sm leading-relaxed text-slate-700">{item.quote}</p>

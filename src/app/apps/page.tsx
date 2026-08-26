@@ -1,6 +1,6 @@
 import { AppsLauncher } from "@/components/apps/AppsLauncher";
 import { Navbar } from "@/components/layout/Navbar";
-import { isClerkConfigured, getViewerContext } from "@/lib/auth";
+import { isAllowlistConfigured, isClerkConfigured, getViewerContext } from "@/lib/auth";
 import { getReagentAppUrl } from "@/lib/hosts";
 import { headers } from "next/headers";
 
@@ -18,6 +18,7 @@ export default async function AppsPage() {
         <section className="mx-auto max-w-7xl px-6 pb-20 lg:px-8">
           <AppsLauncher
             clerkConfigured={isClerkConfigured()}
+            allowlistConfigured={isAllowlistConfigured()}
             allowed={allowed}
             reagentUrl={getReagentAppUrl(host)}
           />
