@@ -3,9 +3,8 @@ import { type NextRequest } from "next/server";
 import { eq } from "drizzle-orm";
 import { db } from "@/db/client";
 import { leads } from "@/db/schema";
-import { scoreLead } from "@/lib/scorer";
-import { sendLeadAlert } from "@/lib/alert";
 import { getAllowedEmails } from "@/lib/auth";
+import { ingestCallReport } from "@/lib/ingest-lead";
 
 export const maxDuration = 60;
 
@@ -124,35 +123,15 @@ function extractDealerEmail(message: NonNullable<VapiPayload["message"]>) {
   ).toLowerCase();
 }
 
-async function processLead(callId: string, transcript: string, dealerEmail: string) {
+async function processLead(callId: string, transcript: string, dealerEmail: string, recordingUrl: string | null, summary: string | null) {
   try {
-    const scored = await scoreLead(transcript);
-    await db()
-      .update(leads)
-      .set({
-        callerName: scored.callerName,
-        callerPhone: scored.callerPhone,
-        locality: scored.locality,
-        budget: scored.budget,
-        propertyType: scored.propertyType,
-        timeline: scored.timeline,
-        summary: scored.summary,
-        score: scored.score,
-        scoringStatus: "done",
-        updatedAt: new Date(),
-      })
-      .where(eq(leads.id, callId));
-
-    const [updated] = await db().select().from(leads).where(eq(leads.id, callId)).limit(1);
-    if (!updated) return;
-
-    const alertTo = process.env.REAGENT_ALERT_TARGET || dealerEmail;
-    if (alertTo) {
-      const sent = await sendLeadAlert(updated, alertTo);
-      if (sent) {
-        await db().update(leads).set({ alertSent: true }).where(eq(leads.id, callId));
-      }
-    }
+    await ingestCallReport({
+      callId,
+      dealerEmail,
+      transcript,
+      recordingUrl,
+      summary,
+    });
   } catch (err) {
     console.error("[vapi-webhook] scoring failed for call", callId, err);
     await db()
@@ -201,24 +180,23 @@ export async function POST(req: NextRequest) {
     .where(eq(leads.id, callId))
     .limit(1);
 
-  if (existing.length > 0) {
-    if (existing[0].scoringStatus === "pending" || existing[0].scoringStatus === "failed") {
-      after(() => processLead(callId, transcript, dealerEmail));
+  if (existing.length === 0) {
+    try {
+      await db().insert(leads).values({
+        id: callId,
+        dealerEmail,
+        transcript: transcript || null,
+        recordingUrl,
+        summary,
+        scoringStatus: "pending",
+        rawPayload: payload as unknown as Record<string, unknown>,
+      });
+    } catch (err) {
+      console.warn("[vapi-webhook] insert skipped", err);
     }
-    return Response.json({ ok: true, duplicate: true });
   }
 
-  await db().insert(leads).values({
-    id: callId,
-    dealerEmail,
-    transcript: transcript || null,
-    recordingUrl,
-    summary,
-    scoringStatus: "pending",
-    rawPayload: payload as unknown as Record<string, unknown>,
-  });
-
-  after(() => processLead(callId, transcript, dealerEmail));
+  after(() => processLead(callId, transcript, dealerEmail, recordingUrl, summary));
 
   return Response.json({ ok: true });
 }

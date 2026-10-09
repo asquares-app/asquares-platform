@@ -33,7 +33,7 @@ Paste into Vapi Server URL:
 2. Click **REagent demo** / **My Apps** → sign in with an allowlisted email
 3. Open **REagent** → dashboard
 4. **Start demo Web Call** → speak as a buyer
-5. End call → wait for lead + email
+5. The dashboard saves the transcript itself when the call ends, then scores it. A Vapi webhook is optional backup.
 
 ## Notes
 

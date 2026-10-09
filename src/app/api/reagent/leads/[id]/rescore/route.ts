@@ -4,6 +4,7 @@ import { leads } from "@/db/schema";
 import { getViewerContext } from "@/lib/auth";
 import { scoreLead } from "@/lib/scorer";
 import { sendLeadAlert } from "@/lib/alert";
+import { toPublicLead } from "@/lib/public-lead";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -53,7 +54,7 @@ export async function POST(_req: Request, { params }: Params) {
       }
     }
 
-    return Response.json({ ok: true, lead: updated });
+    return Response.json({ ok: true, lead: updated ? toPublicLead(updated) : null });
   } catch (err) {
     console.error("[rescore] failed", err);
     await db()
